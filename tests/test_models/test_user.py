@@ -1,48 +1,50 @@
 #!/usr/bin/python3
+"""Test User
 """
-Test suits for amenities
-"""
-import os
-import models
 import unittest
-from datetime import datetime
+from models.base_model import BaseModel
 from models.user import User
 
 
 class TestUser(unittest.TestCase):
+    """unit test
     """
-    Tests for amenities
-    """
+    def test_User(self):
+        """Test use of Class
+        """
+        my_user = User()
+        self.assertTrue(hasattr(my_user, "first_name"))
+        self.assertEqual(my_user.first_name, "")
+        self.assertTrue(hasattr(my_user, "last_name"))
+        self.assertEqual(my_user.last_name, "")
+        self.assertTrue(hasattr(my_user, "email"))
+        self.assertEqual(my_user.email, "")
+        self.assertTrue(hasattr(my_user, "password"))
+        self.assertEqual(my_user.password, "")
 
-    u = User()
+    def test_attrs_are_class_attrs(self):
+        """testing the class attrs
+        """
+        u = User()
+        self.assertTrue(hasattr(
+            User, "first_name"
+        )) and hasattr(
+            User, "last_name"
+        )
 
-    def test_class_exists(self):
-        """tests if class exists"""
-        self.assertEqual(str(type(self.u)), "<class 'models.user.User'>")
+    def test_class_attrs(self):
+        u = User()
+        self.assertIs(type(u.first_name), str)
+        self.assertIs(type(u.last_name), str)
+        self.assertTrue(u.first_name == "")
+        self.assertTrue(u.last_name == "")
 
-    def test_user_inheritance(self):
-        """test if User is a subclass of BaseModel"""
-        self.assertIsInstance(self.u, User)
+    def test_subclass(self):
+        """Test User is a BaseModel subclass
+        """
+        u = User()
+        self.assertTrue(issubclass(type(u), BaseModel))
 
-    def testHasAttributes(self):
-        """verify if attributes exist"""
-        self.assertTrue(hasattr(self.u, 'email'))
-        self.assertTrue(hasattr(self.u, 'password'))
-        self.assertTrue(hasattr(self.u, 'first_name'))
-        self.assertTrue(hasattr(self.u, 'last_name'))
-        self.assertTrue(hasattr(self.u, 'id'))
-        self.assertTrue(hasattr(self.u, 'created_at'))
-        self.assertTrue(hasattr(self.u, 'updated_at'))
 
-    def test_types(self):
-        """tests if the type of the attribute is the correct one"""
-        self.assertIsInstance(self.u.first_name, str)
-        self.assertIsInstance(self.u.last_name, str)
-        self.assertIsInstance(self.u.email, str)
-        self.assertIsInstance(self.u.password, str)
-        self.assertIsInstance(self.u.id, str)
-        self.assertIsInstance(self.u.created_at, datetime.datetime)
-        self.assertIsInstance(self.u.updated_at, datetime.datetime)
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

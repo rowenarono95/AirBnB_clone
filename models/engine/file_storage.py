@@ -1,58 +1,47 @@
-#!/usr/bin/python3
-"""A class that inherence from BaseModel"""
-
+"""
+FileStorage that serializes and deserializes instances to a JSON file
+"""
 import json
+import os.path
 from models.base_model import BaseModel
 from models.user import User
-from models.place import Place
-from models.state import State
 from models.city import City
-from models.amenity import Amenity
+from models.state import State
+from models.place import Place
 from models.review import Review
+from models.amenity import Amenity
 
 
 class FileStorage:
-    """
-    Serializes instances to a JSON file
-    and deserializes JSON file to instances
+    """ String represemting a simple data structure in JSON format.
+        example: '{ "12": { "numbers": [1, 2, 3], "name": "John" } }'
     """
     __file_path = "file.json"
     __objects = {}
 
     def all(self):
-        """return a dictionary of objects"""
+        """ returns the dictionary __objects """
         return self.__objects
 
     def new(self, obj):
-        """save in __objects an object"""
-        stri = obj.__class__.__name__
-        stri = stri + "." + obj.id
-        self.__objects.setdefault(stri, obj)
+        """ sets in __objects the obj with key <obj class name>.id """
+        dict_key = obj.__class__.__name__ + '.' + obj.id
+        self.__objects.update({dict_key: obj})
 
     def save(self):
-        """Save in json file a serialized dictionary"""
-        otro = {}
+        """ Serialises __objests to the JSON file """
+        dict = {}
         for key in self.__objects:
-            otro.setdefault(key, self.__objects[key].to_dict())
-        jdic = json.dumps(otro)
-        with open(self.__file_path, "w") as f:
-            f.write(jdic)
+            dict[key] = self.__objects[key].to_dict()
+        with open(self.__file_path, "w", encoding="utf-8") as f:
+            json.dump(dict, f, sort_keys=True, indent=4)
+            # json.dump(dict, f, sort_keys=True)
+            # json.dump(dict, f)
 
     def reload(self):
-        """load from json file gets a dictionary of
-        dictionary and change to a dictionary of objects"""
-        class_list = [BaseModel, User, Place, State, City, Amenity, Review]
-        try:
-            otro = {}
-            otro2 = {}
-            with open(self.__file_path, "r") as f:
-                otro = json.load(f)
-            for key in otro:
-                y = otro[key]["__class__"]
-                for idx, item in enumerate(class_list):
-                    if y in str(item):
-                        a = class_list[idx](**otro[key])
-                otro2.setdefault(key, a)
-            self.__objects = otro2
-        except:
-            pass
+        """ Deserializes the JSON file to __objects """
+        if os.path.isfile(self.__file_path):
+            with open(self.__file_path, "r", encoding="utf-8") as f:
+                json_obj = json.load(f)
+                for key, val in json_obj.items():
+                    self.__objects[key] = eval(val["__class__"])(**val)

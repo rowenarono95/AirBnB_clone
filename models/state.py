@@ -1,8 +1,10 @@
-#!/usr/python3
+#!/usr/bin/python3
+"""class State that inherits from BaseModel
+"""
 from models.base_model import BaseModel
-"""Class inherence from BaseModel"""
 
 
 class State(BaseModel):
-    """Class for states"""
+    """Defines the state class
+    """
     name = ""

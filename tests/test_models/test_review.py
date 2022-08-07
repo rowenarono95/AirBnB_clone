@@ -1,47 +1,57 @@
 #!/usr/bin/python3
-"""
-Test suits for amenities
-"""
-import os
-import models
+"""Test Review"""
 import unittest
-from datetime import datetime
+from models.base_model import BaseModel
+from models.city import City
+from models.place import Place
+from models.amenity import Amenity
+from models.state import State
 from models.review import Review
+from models.user import User
 
 
-class TestReview(unittest.TestCase):
-    """
-    Tests for amenities
-    """
+class Testreview(unittest.TestCase):
+    """unit test"""
+    def test_class(self):
+        rev1 = Review()
+        self.assertEqual(rev1.__class__.__name__, "Review")
 
-    r = Review()
+    def test_father(self):
+        rev1 = Review()
+        self.assertTrue(issubclass(rev1.__class__, BaseModel))
 
-    def test_class_exists(self):
-        """tests if class exists"""
-        res = "<class 'models.review.Review'>"
-        self.assertEqual(str(type(self.r)), res)
+    def test_review(self):
+        """
+        Test review
+        """
+        my_review = Review()
+        self.assertTrue(hasattr(my_review, "place_id"))
+        self.assertEqual(my_review.place_id, "")
+        self.assertTrue(hasattr(my_review, "user_id"))
+        self.assertEqual(my_review.user_id, "")
+        self.assertTrue(hasattr(my_review, "text"))
+        self.assertEqual(my_review.text, "")
 
-    def test_user_inheritance(self):
-        """test if Review is a subclass of BaseModel"""
-        self.assertIsInstance(self.r, Review)
+    def setUp(self):
+        self.review = Review()
+        self.attr_list = [
+            "place_id",
+            "user_id",
+            "text"
+        ]
 
-    def testHasAttributes(self):
-        """verify if attributes exist"""
-        self.assertTrue(hasattr(self.r, 'place_id'))
-        self.assertTrue(hasattr(self.r, 'user_id'))
-        self.assertTrue(hasattr(self.r, 'text'))
-        self.assertTrue(hasattr(self.r, 'id'))
-        self.assertTrue(hasattr(self.r, 'created_at'))
-        self.assertTrue(hasattr(self.r, 'updated_at'))
+    def test_review_is_a_subclass_of_basemodel(self):
+        self.assertTrue(issubclass(type(self.review), BaseModel))
 
-    def test_types(self):
-        """tests if the type of the attribute is the correct one"""
-        self.assertIsInstance(self.r.place_id, str)
-        self.assertIsInstance(self.r.user_id, str)
-        self.assertIsInstance(self.r.text, str)
-        self.assertIsInstance(self.r.id, str)
-        self.assertIsInstance(self.r.created_at, datetime.datetime)
-        self.assertIsInstance(self.r.updated_at, datetime.datetime)
+    def test_attrs_are_class_attrs(self):
+        for attr in self.attr_list:
+            self.assertTrue(hasattr(self.review, attr))
 
-if __name__ == '__main__':
+    def test_class_attrs(self):
+        for attr in self.attr_list:
+            self.assertIs(type(getattr(self.review, attr)), str)
+            self.assertFalse(bool(getattr(self.review, attr)))
+
+
+if __name__ == "__main__":
     unittest.main()

@@ -1,49 +1,56 @@
 #!/usr/bin/python3
+"""
+a base class for other classes to use from it
+"""
+from datetime import datetime
+from uuid import uuid4
 import models
-"""
-Base class
-"""
-
-import uuid
-import datetime
 
 
 class BaseModel:
-    """Base class"""
+    """
+    Base Class of AirBnb Console
+    """
+
     def __init__(self, *args, **kwargs):
-        """Class constructor"""
-        for key in kwargs:
-            if key != "__class__":
-                if key == 'created_at':
-                    aux = datetime.datetime.strptime(kwargs['created_at'],
-                                                     "%Y-%m-%dT%H:%M:%S.%f")
-                    self.created_at = aux
-                elif key == 'updated_at':
-                    aux = datetime.datetime.strptime(kwargs['updated_at'],
-                                                     "%Y-%m-%dT%H:%M:%S.%f")
-                    self.updated_at = aux
-                else:
-                    setattr(self, key, kwargs[key])
+        """
+        Init of Object
+        """
         if len(kwargs) == 0:
-            self.id = str(uuid.uuid4())
-            self.created_at = datetime.datetime.now()
-            self.updated_at = datetime.datetime.now()
+            self.id = str(uuid4())
+            self.created_at = datetime.now()
+            self.updated_at = self.created_at
             models.storage.new(self)
+            models.storage.save()
+        else:
+            kwargs["created_at"] = datetime.strptime(kwargs["created_at"],
+                                                     "%Y-%m-%dT%H:%M:%S.%f")
+            kwargs["updated_at"] = datetime.strptime(kwargs["updated_at"],
+                                                     "%Y-%m-%dT%H:%M:%S.%f")
+            for key, val in kwargs.items():
+                if "__class__" not in key:
+                    setattr(self, key, val)
 
     def __str__(self):
-        """Return specific string format"""
-        return '[{}] ({}) {}'.format(self.__class__.__name__,
-                                     self.id, self.__dict__)
+        """
+        print the instance
+        """
+        return "[{:s}] ({:s}) {}".format(self.__class__.__name__, self.id,
+                                         self.__dict__)
 
     def save(self):
-        """Saves the object"""
-        self.updated_at = datetime.datetime.now()
+        """
+            updates the public instance attribute
+        """
+        self.updated_at = datetime.now()
         models.storage.save()
 
     def to_dict(self):
-        """Creates a dictionary"""
-        dictionary = self.__dict__.copy()
-        dictionary['__class__'] = self.__class__.__name__
-        dictionary['created_at'] = self.created_at.isoformat()
-        dictionary['updated_at'] = self.updated_at.isoformat()
-        return dictionary
+        """
+            returns a dictionary containing all keys/values
+        """
+        temp = dict(self.__dict__)
+        temp['__class__'] = self.__class__.__name__
+        temp['updated_at'] = self.updated_at.strftime("%Y-%m-%dT%H:%M:%S.%f")
+        temp['created_at'] = self.created_at.strftime("%Y-%m-%dT%H:%M:%S.%f")
+        return temp

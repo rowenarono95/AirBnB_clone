@@ -1,63 +1,83 @@
 #!/usr/bin/python3
-"""
-Test suits for places
-"""
-
-import os
-import models
+"""Test City"""
 import unittest
-from datetime import datetime
+from models.base_model import BaseModel
+from models.city import City
 from models.place import Place
+from models.amenity import Amenity
+from models.state import State
+from models.review import Review
+from models.user import User
 
 
-class TestPlace(unittest.TestCase):
-    """
-    Tests for amenities
-    """
+class Testcity(unittest.TestCase):
+    """unit test"""
+    def test_class(self):
+        city1 = City()
+        self.assertEqual(city1.__class__.__name__, "City")
 
-    p = Place()
+    def test_dict_value(self):
+        """
+            test dict values
+        """
+        time_format = "%Y-%m-%dT%H:%M:%S.%f"
+        city = City()
+        dict_con = city.to_dict()
+        self.assertEqual(dict_con["__class__"], "City")
+        self.assertEqual(type(dict_con["created_at"]), str)
+        self.assertEqual(type(dict_con["updated_at"]), str)
+        self.assertEqual(
+                            dict_con["created_at"],
+                            city.created_at.strftime(time_format)
+                                        )
+        self.assertEqual(
+                            dict_con["updated_at"],
+                            city.updated_at.strftime(time_format))
 
-    def test_class_exists(self):
-        """tests if class exists"""
-        self.assertEqual(str(type(self.p)), "<class 'models.place.Place'>")
+    def test_base(self):
+        city1 = City()
+        self.assertTrue(issubclass(city1.__class__, BaseModel))
 
-    def test_user_inheritance(self):
-        """test if Place is a subclass of BaseModel"""
-        self.assertIsInstance(self.p, Place)
+    def test_city(self):
+        """
+        Test attributes of Class City
+        """
+        my_city = City()
+        self.assertTrue(hasattr(my_city, "name"))
+        self.assertEqual(my_city.name, "")
+        self.assertTrue(hasattr(my_city, "state_id"))
+        self.assertEqual(my_city.state_id, "")
 
-    def testHasAttributes(self):
-        """verify if attributes exist"""
-        self.assertTrue(hasattr(self.p, 'city_id'))
-        self.assertTrue(hasattr(self.p, 'user_id'))
-        self.assertTrue(hasattr(self.p, 'name'))
-        self.assertTrue(hasattr(self.p, 'description'))
-        self.assertTrue(hasattr(self.p, 'number_rooms'))
-        self.assertTrue(hasattr(self.p, 'number_bathrooms'))
-        self.assertTrue(hasattr(self.p, 'max_guest'))
-        self.assertTrue(hasattr(self.p, 'price_by_night'))
-        self.assertTrue(hasattr(self.p, 'latitude'))
-        self.assertTrue(hasattr(self.p, 'longitude'))
-        self.assertTrue(hasattr(self.p, 'amenity_ids'))
-        self.assertTrue(hasattr(self.p, 'id'))
-        self.assertTrue(hasattr(self.p, 'created_at'))
-        self.assertTrue(hasattr(self.p, 'updated_at'))
+    def setUp(self):
+        self.place = Place()
+        self.attr_list = ["name", "user_id", "city_id", "description",
+                          "number_bathrooms", "max_guest", "number_rooms",
+                          "price_by_night", "latitude", "longitude",
+                          "amenity_ids"]
 
-    def test_types(self):
-        """tests if the type of the attribute is the correct one"""
-        self.assertIsInstance(self.p.city_id, str)
-        self.assertIsInstance(self.p.user_id, str)
-        self.assertIsInstance(self.p.name, str)
-        self.assertIsInstance(self.p.description, str)
-        self.assertIsInstance(self.p.number_rooms, int)
-        self.assertIsInstance(self.p.number_bathrooms, int)
-        self.assertIsInstance(self.p.max_guest, int)
-        self.assertIsInstance(self.p.price_by_night, int)
-        self.assertIsInstance(self.p.latitude, float)
-        self.assertIsInstance(self.p.longitude, float)
-        self.assertIsInstance(self.p.amenity_ids, list)
-        self.assertIsInstance(self.p.id, str)
-        self.assertIsInstance(self.p.created_at, datetime.datetime)
-        self.assertIsInstance(self.p.updated_at, datetime.datetime)
+    def test_attrs_are_class_attrs(self):
+        for attr in self.attr_list:
+            self.assertTrue(hasattr(Place, attr))
 
-if __name__ == '__main__':
+    def test_class_attrs(self):
+        self.assertIs(type(self.place.name), str)
+        self.assertIs(type(self.place.city_id), str)
+        self.assertIs(type(self.place.user_id), str)
+        self.assertIs(type(self.place.description), str)
+        self.assertIs(type(self.place.number_bathrooms), int)
+        self.assertIs(type(self.place.max_guest), int)
+        self.assertIs(type(self.place.number_rooms), int)
+        self.assertIs(type(self.place.price_by_night), int)
+        self.assertIs(type(self.place.latitude), float)
+        self.assertIs(type(self.place.longitude), float)
+        self.assertIs(type(self.place.amenity_ids), list)
+
+        for attr in self.attr_list:
+            self.assertFalse(bool(getattr(self.place, attr)))
+
+    def test_place_obj_is_a_subclass_of_basemodel(self):
+        self.assertTrue(issubclass(type(self.place), BaseModel))
+
+
+if __name__ == "__main__":
     unittest.main()
