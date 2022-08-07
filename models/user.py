@@ -1,9 +1,10 @@
-#!usr/bin/python3
+#!/usr/python3
 from models.base_model import BaseModel
+"""Class inherence from BaseModel"""
 
 
 class User(BaseModel):
-    """Creates a new user"""
+    """Class for users"""
     email = ""
     password = ""
     first_name = ""

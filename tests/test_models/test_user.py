@@ -1,54 +1,48 @@
 #!/usr/bin/python3
-"""Unit tests for the `state` module.
 """
+Test suits for amenities
+"""
+import os
+import models
 import unittest
-from models.user import User
-from models import storage
 from datetime import datetime
-
-u1 = User()
-u2 = User(**u1.to_dict())
-u3 = User("hello", "wait", "in")
+from models.user import User
 
 
-class TestState(unittest.TestCase):
-    """Test cases for the `User` class."""
+class TestUser(unittest.TestCase):
+    """
+    Tests for amenities
+    """
 
-    def test_params(self):
-        k = f"{type(u1).__name__}.{u1.id}"
-        self.assertIn(k, storage.all())
-        self.assertIsInstance(u1.email, str)
-        self.assertIsInstance(u1.password, str)
-        self.assertIsInstance(u1.first_name, str)
-        self.assertIsInstance(u1.last_name, str)
+    u = User()
 
-    def test_init(self):
-        """Test method for public instances"""
-        self.assertIsInstance(u1.id, str)
-        self.assertIsInstance(u1.created_at, datetime)
-        self.assertIsInstance(u1.updated_at, datetime)
-        self.assertEqual(u1.updated_at, u2.updated_at)
+    def test_class_exists(self):
+        """tests if class exists"""
+        self.assertEqual(str(type(self.u)), "<class 'models.user.User'>")
 
-    def test_str(self):
-        """Test method for str representation"""
-        string = f"[{type(u1).__name__}] ({u1.id}) {u1.__dict__}"
-        self.assertEqual(u1.__str__(), string)
+    def test_user_inheritance(self):
+        """test if User is a subclass of BaseModel"""
+        self.assertIsInstance(self.u, User)
 
-    def test_save(self):
-        """Test method for save"""
-        old_update = u1.updated_at
-        u1.save()
-        self.assertNotEqual(u1.updated_at, old_update)
+    def testHasAttributes(self):
+        """verify if attributes exist"""
+        self.assertTrue(hasattr(self.u, 'email'))
+        self.assertTrue(hasattr(self.u, 'password'))
+        self.assertTrue(hasattr(self.u, 'first_name'))
+        self.assertTrue(hasattr(self.u, 'last_name'))
+        self.assertTrue(hasattr(self.u, 'id'))
+        self.assertTrue(hasattr(self.u, 'created_at'))
+        self.assertTrue(hasattr(self.u, 'updated_at'))
 
-    def test_todict(self):
-        """Test method for dict"""
-        a_dict = u2.to_dict()
-        self.assertIsInstance(a_dict, dict)
-        self.assertEqual(a_dict['__class__'], type(u2).__name__)
-        self.assertIn('created_at', a_dict.keys())
-        self.assertIn('updated_at', a_dict.keys())
-        self.assertNotEqual(u1, u2)
+    def test_types(self):
+        """tests if the type of the attribute is the correct one"""
+        self.assertIsInstance(self.u.first_name, str)
+        self.assertIsInstance(self.u.last_name, str)
+        self.assertIsInstance(self.u.email, str)
+        self.assertIsInstance(self.u.password, str)
+        self.assertIsInstance(self.u.id, str)
+        self.assertIsInstance(self.u.created_at, datetime.datetime)
+        self.assertIsInstance(self.u.updated_at, datetime.datetime)
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

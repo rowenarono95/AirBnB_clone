@@ -1,18 +1,9 @@
-#!/usr/bin/python3
-"""The `city` module
-
-It defines one class, `City(),
-which sub-classes the `BaseModel()` class.`
-"""
+#!/usr/python3
 from models.base_model import BaseModel
+"""Class inherence from BaseModel"""
 
 
 class City(BaseModel):
-    """A city in the application.
-
-    Attributes:
-        name
-        state_id
-    """
-    name = ""
+    """Class for cities"""
     state_id = ""
+    name = ""

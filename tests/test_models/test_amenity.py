@@ -1,58 +1,41 @@
 #!/usr/bin/python3
-"""Unit tests for the `amenity` module.
 """
+Test suits for amenities
+"""
+import os
+import models
 import unittest
-from models.amenity import Amenity
-from models import storage
 from datetime import datetime
-
-a1 = Amenity()
-a2 = Amenity(**a1.to_dict())
-a3 = Amenity("hello", "wait", "in")
+from models.amenity import Amenity
 
 
 class TestAmenity(unittest.TestCase):
-    """Test cases for the `Amenity` class."""
+    """Tests instances and methods from amenity class"""
 
-    def test_params(self):
-        """Test method for class attributes"""
+    a = Amenity()
 
-        k = f"{type(a1).__name__}.{a1.id}"
-        self.assertIsInstance(a1.name, str)
-        self.assertIn(k, storage.all())
-        self.assertEqual(a3.name, "")
+    def test_class_exists(self):
+        """tests if class exists"""
+        res = "<class 'models.amenity.Amenity'>"
+        self.assertEqual(str(type(self.a)), res)
 
-    def test_init(self):
-        """Test method for public instances"""
+    def test_user_inheritance(self):
+        """test if Amenity is a subclass of BaseModel"""
+        self.assertIsInstance(self.a, Amenity)
 
-        self.assertIsInstance(a1.id, str)
-        self.assertIsInstance(a1.created_at, datetime)
-        self.assertIsInstance(a1.updated_at, datetime)
-        self.assertEqual(a1.updated_at, a2.updated_at)
+    def testHasAttributes(self):
+        """verify if attributes exist"""
+        self.assertTrue(hasattr(self.a, 'name'))
+        self.assertTrue(hasattr(self.a, 'id'))
+        self.assertTrue(hasattr(self.a, 'created_at'))
+        self.assertTrue(hasattr(self.a, 'updated_at'))
 
-    def test_str(self):
-        """Test method for str representation"""
+    def test_types(self):
+        """tests if the type of the attribute is the correct one"""
+        self.assertIsInstance(self.a.name, str)
+        self.assertIsInstance(self.a.id, str)
+        self.assertIsInstance(self.a.created_at, datetime.datetime)
+        self.assertIsInstance(self.a.updated_at, datetime.datetime)
 
-        string = f"[{type(a1).__name__}] ({a1.id}) {a1.__dict__}"
-        self.assertEqual(a1.__str__(), string)
-
-    def test_save(self):
-        """Test method for save"""
-
-        old_update = a1.updated_at
-        a1.save()
-        self.assertNotEqual(a1.updated_at, old_update)
-
-    def test_todict(self):
-        """Test method for dict"""
-
-        a_dict = a2.to_dict()
-        self.assertIsInstance(a_dict, dict)
-        self.assertEqual(a_dict['__class__'], type(a2).__name__)
-        self.assertIn('created_at', a_dict.keys())
-        self.assertIn('updated_at', a_dict.keys())
-        self.assertNotEqual(a1, a2)
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()
