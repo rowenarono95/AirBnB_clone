@@ -1,9 +1,14 @@
 #!/usr/bin/python3
-"""Module for Amenity class."""
+"""
+module that contain the Amenity class
+
+Class:
+    Amenity : define Amenity
+"""
 
 from models.base_model import BaseModel
 
 
 class Amenity(BaseModel):
-    """Class representing a Amenity."""
-    name = ""
+    """class that define Amenity"""
+    name = str("")

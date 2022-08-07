@@ -1,193 +1,253 @@
 #!/usr/bin/python3
-"""Unittest module for the BaseModel Class."""
+"""
+Unittest for "base_model.py"
+Execute all tests: python3 -m unittest discover tests
+Execute this test: python3 -m unittest tests/test_models/test_base_model.py
+"""
 
-from models import storage
+from models import base_model
 from models.base_model import BaseModel
-from models.engine.file_storage import FileStorage
+from models import storage
 from datetime import datetime
-import json
 import os
-import re
+import shutil
 import time
 import unittest
-import uuid
+import pycodestyle
 
 
 class TestBaseModel(unittest.TestCase):
+    """
+    class that test BaseModel
 
-    """Test Cases for the BaseModel class."""
+    Functions:
+        test_conformance
+        test_documentation
+
+        test_data_initialization
+        test_create_instance_from_dict
+        test_update_my_object
+        test_create_from_dict
+
+        test_type_id
+        test_len_id
+        test_uniq_id
+
+        test_type_create_at
+        test_type_create_at_to_dict
+        test_type_updated_at
+        test_type_updated_at_to_dict
+
+        test_type_str
+        test_print_str
+
+        test_type_to_dict
+    """
+    path = "models/base_model.py"  # models/base_model.py
+    file = os.path.splitext(path)[0].replace("/", ".")  # file to test
+
+    def test_conformance(self):
+        """Test that we conform to PEP-8."""
+        style = pycodestyle.StyleGuide(quiet=True)
+        result = style.check_files([self.path])
+        self.assertEqual(
+            result.total_errors, 0,
+            f"Found code style errors (pycodestyle) in file \"{self.path}\""
+        )
+
+    def test_documentation(self):
+        """test all documentation of module"""
+        # module documentation
+        self.assertIsNotNone(
+            base_model.__doc__,
+            "Missing: module documentation of file \"base.model\"")
+
+        # classes documentation
+        for key, value in base_model.__dict__.items():
+            if callable(value):
+                self.assertIsNotNone(
+                    value.__doc__, f"Missing: class documentation \
+of class \"{value.__name__}\"")
+
+        # functions documentation
+        for key, value in base_model.__dict__.items():
+            if callable(value):
+                for key2, value2 in value.__dict__.items():
+                    if callable(value2):
+                        self.assertIsNotNone(
+                            value2.__doc__, f"Missing: function documentation \
+of function \"{value2.__name__}\"")
 
     def setUp(self):
-        """Sets up test methods."""
-        pass
+        try:
+            shutil.copyfile("file.json", "tmp_file.json")
+            os.remove("file.json")
+            open("file.json", "w").close()
+            storage._FileStorage__objects = {}
+        except Exception:
+            pass
 
     def tearDown(self):
-        """Tears down test methods."""
-        self.resetStorage()
-        pass
+        try:
+            shutil.copyfile("tmp_file.json", "file.json")
+            os.remove("tmp_file.json")
+            storage._FileStorage__objects = {}
+        except Exception:
+            pass
 
-    def resetStorage(self):
-        """Resets FileStorage data."""
-        FileStorage._FileStorage__objects = {}
-        if os.path.isfile(FileStorage._FileStorage__file_path):
-            os.remove(FileStorage._FileStorage__file_path)
-
-    def test_3_instantiation(self):
-        """Tests instantiation of BaseModel class."""
-
-        b = BaseModel()
-        self.assertEqual(str(type(b)), "<class 'models.base_model.BaseModel'>")
-        self.assertIsInstance(b, BaseModel)
-        self.assertTrue(issubclass(type(b), BaseModel))
-
-    def test_3_init_no_args(self):
-        """Tests __init__ with no arguments."""
-        self.resetStorage()
-        with self.assertRaises(TypeError) as e:
-            BaseModel.__init__()
-        msg = "__init__() missing 1 required positional argument: 'self'"
-        self.assertEqual(str(e.exception), msg)
-
-    def test_3_init_many_args(self):
-        """Tests __init__ with many arguments."""
-        self.resetStorage()
-        args = [i for i in range(1000)]
-        b = BaseModel(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
-        b = BaseModel(*args)
-
-    def test_3_attributes(self):
-        """Tests attributes value for instance of a BaseModel class."""
-
-        attributes = storage.attributes()["BaseModel"]
-        o = BaseModel()
-        for k, v in attributes.items():
-            self.assertTrue(hasattr(o, k))
-            self.assertEqual(type(getattr(o, k, None)), v)
-
-    def test_3_datetime_created(self):
-        """Tests if updated_at & created_at are current at creation."""
-        date_now = datetime.now()
-        b = BaseModel()
-        diff = b.updated_at - b.created_at
-        self.assertTrue(abs(diff.total_seconds()) < 0.01)
-        diff = b.created_at - date_now
-        self.assertTrue(abs(diff.total_seconds()) < 0.1)
-
-    def test_3_id(self):
-        """Tests for unique user ids."""
-
-        l = [BaseModel().id for i in range(1000)]
-        self.assertEqual(len(set(l)), len(l))
-
-    def test_3_save(self):
-        """Tests the public instance method save()."""
-
-        b = BaseModel()
-        time.sleep(0.5)
-        date_now = datetime.now()
-        b.save()
-        diff = b.updated_at - date_now
-        self.assertTrue(abs(diff.total_seconds()) < 0.01)
-
-    def test_3_str(self):
-        """Tests for __str__ method."""
-        b = BaseModel()
-        rex = re.compile(r"^\[(.*)\] \((.*)\) (.*)$")
-        res = rex.match(str(b))
-        self.assertIsNotNone(res)
-        self.assertEqual(res.group(1), "BaseModel")
-        self.assertEqual(res.group(2), b.id)
-        s = res.group(3)
-        s = re.sub(r"(datetime\.datetime\([^)]*\))", "'\\1'", s)
-        d = json.loads(s.replace("'", '"'))
-        d2 = b.__dict__.copy()
-        d2["created_at"] = repr(d2["created_at"])
-        d2["updated_at"] = repr(d2["updated_at"])
-        self.assertEqual(d, d2)
-
-    def test_3_to_dict(self):
-        """Tests the public instance method to_dict()."""
-
-        b = BaseModel()
-        b.name = "Laura"
-        b.age = 23
-        d = b.to_dict()
-        self.assertEqual(d["id"], b.id)
-        self.assertEqual(d["__class__"], type(b).__name__)
-        self.assertEqual(d["created_at"], b.created_at.isoformat())
-        self.assertEqual(d["updated_at"], b.updated_at.isoformat())
-        self.assertEqual(d["name"], b.name)
-        self.assertEqual(d["age"], b.age)
-
-    def test_3_to_dict_no_args(self):
-        """Tests to_dict() with no arguments."""
-        self.resetStorage()
-        with self.assertRaises(TypeError) as e:
-            BaseModel.to_dict()
-        msg = "to_dict() missing 1 required positional argument: 'self'"
-        self.assertEqual(str(e.exception), msg)
-
-    def test_3_to_dict_excess_args(self):
-        """Tests to_dict() with too many arguments."""
-        self.resetStorage()
-        with self.assertRaises(TypeError) as e:
-            BaseModel.to_dict(self, 98)
-        msg = "to_dict() takes 1 positional argument but 2 were given"
-        self.assertEqual(str(e.exception), msg)
-
-    def test_4_instantiation(self):
-        """Tests instantiation with **kwargs."""
-
+# =========================
+# test __init__
+# =========================
+    def test_data_initialization(self):
+        """This fonction tests data initialization"""
         my_model = BaseModel()
-        my_model.name = "Holberton"
+        my_model.name = "My First Model"
+        my_model.my_number = 89
+
+        self.assertEqual(my_model.name, "My First Model")
+        self.assertEqual(my_model.my_number, 89)
+        self.assertLessEqual(my_model.created_at, my_model.updated_at)
+
+    def test_create_instance_from_dict(self):
+        """create a new instance using a dictionnary of another instance \
+already created"""
+        my_model = BaseModel()
+        my_model.name = "My First Model"
         my_model.my_number = 89
         my_model_json = my_model.to_dict()
+
         my_new_model = BaseModel(**my_model_json)
-        self.assertEqual(my_new_model.to_dict(), my_model.to_dict())
+        my_new_model_json = my_new_model.to_dict()
 
-    def test_4_instantiation_dict(self):
-        """Tests instantiation with **kwargs from custom dict."""
-        d = {"__class__": "BaseModel",
-             "updated_at":
-             datetime(2050, 12, 30, 23, 59, 59, 123456).isoformat(),
-             "created_at": datetime.now().isoformat(),
-             "id": uuid.uuid4(),
-             "var": "foobar",
-             "int": 108,
-             "float": 3.14}
-        o = BaseModel(**d)
-        self.assertEqual(o.to_dict(), d)
+        self.assertEqual(my_model_json, my_new_model_json)
 
-    def test_5_save(self):
-        """Tests that storage.save() is called from save()."""
-        self.resetStorage()
-        b = BaseModel()
-        b.save()
-        key = "{}.{}".format(type(b).__name__, b.id)
-        d = {key: b.to_dict()}
-        self.assertTrue(os.path.isfile(FileStorage._FileStorage__file_path))
-        with open(FileStorage._FileStorage__file_path,
-                  "r", encoding="utf-8") as f:
-            self.assertEqual(len(f.read()), len(json.dumps(d)))
-            f.seek(0)
-            self.assertEqual(json.load(f), d)
+    def test_update_my_object(self):
+        """test if created_at is same after a modification but \
+updated_at has changed"""
+        my_model = BaseModel()
+        my_model.name = "Hello"
 
-    def test_5_save_no_args(self):
-        """Tests save() with no arguments."""
-        self.resetStorage()
-        with self.assertRaises(TypeError) as e:
-            BaseModel.save()
-        msg = "save() missing 1 required positional argument: 'self'"
-        self.assertEqual(str(e.exception), msg)
+        old_updated = my_model.updated_at
+        old_created = my_model.created_at
 
-    def test_5_save_excess_args(self):
-        """Tests save() with too many arguments."""
-        self.resetStorage()
-        with self.assertRaises(TypeError) as e:
-            BaseModel.save(self, 98)
-        msg = "save() takes 1 positional argument but 2 were given"
-        self.assertEqual(str(e.exception), msg)
+        time.sleep(0.1)
+        my_model.name = "bye"
+        my_model.save()
 
+        self.assertEqual(old_created, my_model.created_at)
+        self.assertNotEqual(old_updated, my_model.updated_at)
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_create_from_dict(self):
+        """test create from dict"""
+        my_model = BaseModel(**{
+            "id": "08400995-36d2-46a8-b932-364e7aef5eeb",
+            "created_at": "2022-03-01T14:12:29.585036",
+            "updated_at": "2022-03-01T14:12:29.585130",
+            "name": "toto",
+            "my_number": 89,
+            "__class__": "BaseModel"
+        })
+        self.assertEqual(my_model.id, "08400995-36d2-46a8-b932-364e7aef5eeb")
+        self.assertEqual(my_model.name, "toto")
+        self.assertEqual(my_model.created_at, datetime(
+            2022, 3, 1, 14, 12, 29, 585036))
+        self.assertNotEqual(my_model.__class__, "BaseModel")
+
+    def test_with_one_argument(self):
+        """test create with one argument, has to do nothing with"""
+        my_model = BaseModel("hello")
+        my_model.name = "Mr.X"
+
+        self.assertEqual(my_model.name, "Mr.X")
+
+# =========================
+# test id
+# =========================
+    def test_len_id(self):
+        """This function tests len of id"""
+        my_model1 = BaseModel()
+        my_model2 = BaseModel()
+        my_model3 = BaseModel()
+        my_model4 = BaseModel()
+        my_model5 = BaseModel()
+        id_list = [my_model1.id, my_model2.id,
+                   my_model3.id, my_model4.id, my_model5.id]
+        for id in range(len(id_list)-1):
+            self.assertEqual(len(id_list[id]), 36)
+
+    def test_uniq_id(self):
+        """This function tests if id is different for all models"""
+        my_model1 = BaseModel()
+        my_model2 = BaseModel()
+        my_model3 = BaseModel()
+        my_model4 = BaseModel()
+        my_model5 = BaseModel()
+        id_list = [my_model1.id, my_model2.id,
+                   my_model3.id, my_model4.id, my_model5.id]
+        for id in range(len(id_list)-1):
+            self.assertNotEqual(id_list[id], id_list[id+1])
+
+# =========================
+# test created_at
+# =========================
+    def test_type_create_at(self):
+        """This function test if the return of create_at method \
+is a datetime object"""
+        my_model = BaseModel()
+        self.assertIsInstance(my_model.created_at, datetime)
+
+    def test_type_create_at_to_dict(self):
+        """This function test if the return of to_dict() at index create_at \
+is a string object"""
+        my_model = BaseModel()
+        dict = my_model.to_dict()
+        self.assertIsInstance(dict["created_at"], str)
+
+# =========================
+# test updated_at
+# =========================
+    def test_type_update_at(self):
+        """This function test if the return of update_at method \
+is a datetime object"""
+        my_model = BaseModel()
+        self.assertIsInstance(my_model.created_at, datetime)
+
+    def test_type_updated_at_to_dict(self):
+        """This function test if the return of to_dict() at index updated_at \
+is a string object"""
+        my_model = BaseModel()
+        dict = my_model.to_dict()
+        self.assertIsInstance(dict["updated_at"], str)
+
+# =========================
+# test __str__
+# =========================
+    def test_type_str(self):
+        """This function tests if __str__ method returns a string"""
+        my_model = BaseModel()
+        self.assertIsInstance((my_model.__str__()), str)
+
+    def test_print_str(self):
+        """This function tests if __str__ is print correctly"""
+        my_model = BaseModel(**{
+            "id": "08400995-36d2-46a8-b932-364e7aef5eeb",
+            "created_at": "2022-03-01T14:12:29.585036",
+            "updated_at": "2022-03-01T14:12:29.585130",
+            "name": "toto",
+            "my_number": 89,
+            "__class__": "BaseModel"
+        })
+        self.assertEqual((my_model.__str__(
+        )), "[BaseModel] (08400995-36d2-46a8-b932-364e7aef5eeb) \
+{'id': '08400995-36d2-46a8-b932-364e7aef5eeb', 'created_at': \
+datetime.datetime(2022, 3, 1, 14, 12, 29, 585036), 'updated_at': \
+datetime.datetime(2022, 3, 1, 14, 12, 29, 585130), 'name': \
+'toto', 'my_number': 89}")
+
+# =========================
+# test to_dict
+# =========================
+    def test_type_to_dict(self):
+        """This function tests if to_dict method returns dict """
+        my_model = BaseModel()
+        self.assertIsInstance(my_model.to_dict(), dict)

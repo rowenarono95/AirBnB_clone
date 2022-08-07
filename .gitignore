@@ -1,5 +1,4 @@
-*-main.py
-__pycache__/
-*.pyc
-*.swp
-file.json
+.editorconfig
+__pycache__
+*.json
+w3c_validator.py

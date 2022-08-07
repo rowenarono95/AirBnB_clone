@@ -1,10 +1,15 @@
 #!/usr/bin/python3
-"""Module for City class."""
+"""
+module that contain the City class
+
+Class:
+    City : define City
+"""
 
 from models.base_model import BaseModel
 
 
 class City(BaseModel):
-    """Class representing a City."""
-    state_id = ""
-    name = ""
+    """class that define City"""
+    state_id = str("")
+    name = str("")
