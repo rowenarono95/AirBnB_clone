@@ -1,52 +1,57 @@
 #!/usr/bin/python3
-"""Unittest module for the Review Class."""
-
+"""Test Review"""
 import unittest
-from datetime import datetime
-import time
-from models.review import Review
-import re
-import json
-from models.engine.file_storage import FileStorage
-import os
-from models import storage
 from models.base_model import BaseModel
+from models.city import City
+from models.place import Place
+from models.amenity import Amenity
+from models.state import State
+from models.review import Review
+from models.user import User
 
 
-class TestReview(unittest.TestCase):
+class Testreview(unittest.TestCase):
+    """unit test"""
+    def test_class(self):
+        rev1 = Review()
+        self.assertEqual(rev1.__class__.__name__, "Review")
 
-    """Test Cases for the Review class."""
+    def test_father(self):
+        rev1 = Review()
+        self.assertTrue(issubclass(rev1.__class__, BaseModel))
+
+    def test_review(self):
+        """
+        Test review
+        """
+        my_review = Review()
+        self.assertTrue(hasattr(my_review, "place_id"))
+        self.assertEqual(my_review.place_id, "")
+        self.assertTrue(hasattr(my_review, "user_id"))
+        self.assertEqual(my_review.user_id, "")
+        self.assertTrue(hasattr(my_review, "text"))
+        self.assertEqual(my_review.text, "")
 
     def setUp(self):
-        """Sets up test methods."""
-        pass
+        self.review = Review()
+        self.attr_list = [
+            "place_id",
+            "user_id",
+            "text"
+        ]
 
-    def tearDown(self):
-        """Tears down test methods."""
-        self.resetStorage()
-        pass
+    def test_review_is_a_subclass_of_basemodel(self):
+        self.assertTrue(issubclass(type(self.review), BaseModel))
 
-    def resetStorage(self):
-        """Resets FileStorage data."""
-        FileStorage._FileStorage__objects = {}
-        if os.path.isfile(FileStorage._FileStorage__file_path):
-            os.remove(FileStorage._FileStorage__file_path)
+    def test_attrs_are_class_attrs(self):
+        for attr in self.attr_list:
+            self.assertTrue(hasattr(self.review, attr))
 
-    def test_8_instantiation(self):
-        """Tests instantiation of Review class."""
+    def test_class_attrs(self):
+        for attr in self.attr_list:
+            self.assertIs(type(getattr(self.review, attr)), str)
+            self.assertFalse(bool(getattr(self.review, attr)))
 
-        b = Review()
-        self.assertEqual(str(type(b)), "<class 'models.review.Review'>")
-        self.assertIsInstance(b, Review)
-        self.assertTrue(issubclass(type(b), BaseModel))
-
-    def test_8_attributes(self):
-        """Tests the attributes of Review class."""
-        attributes = storage.attributes()["Review"]
-        o = Review()
-        for k, v in attributes.items():
-            self.assertTrue(hasattr(o, k))
-            self.assertEqual(type(getattr(o, k, None)), v)
 
 if __name__ == "__main__":
     unittest.main()
