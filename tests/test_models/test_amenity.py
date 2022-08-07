@@ -1,107 +1,52 @@
 #!/usr/bin/python3
-"""Amenity"""
+"""Unittest module for the Amenity Class."""
+
 import unittest
-from models.base_model import BaseModel
-from models.city import City
-from models.place import Place
+from datetime import datetime
+import time
 from models.amenity import Amenity
-from models.state import State
-from models.review import Review
+import re
+import json
+from models.engine.file_storage import FileStorage
+import os
+from models import storage
+from models.base_model import BaseModel
 
 
-class Testamenity(unittest.TestCase):
-    """unit test"""
-    def test_class(self):
-        amen = Amenity()
-        self.assertEqual(amen.__class__.__name__, "Amenity")
+class TestAmenity(unittest.TestCase):
 
-    def test_base(self):
-        amen = Amenity()
-        self.assertTrue(issubclass(amen.__class__, BaseModel))
-
-    def test_amenity(self):
-        """Test attributes of Class Amenity"""
-        amenity = Amenity()
-        self.AssertTrue(hasattr(amenity, "name"))
-        self.assertEqual(amenity.name, "")
-
-    def test_dict_value(self):
-        """
-            test dict values
-        """
-        time_format = "%Y-%m-%dT%H:%M:%S.%f"
-        inst = Amenity()
-        dict_con = inst.to_dict()
-        self.assertEqual(dict_con["__class__"], "Amenity")
-        self.assertEqual(type(dict_con["created_at"]), str)
-        self.assertEqual(type(dict_con["updated_at"]), str)
-        self.assertEqual(
-                            dict_con["created_at"],
-                            inst.created_at.strftime(time_format)
-                                        )
-        self.assertEqual(
-                            dict_con["updated_at"],
-                            inst.updated_at.strftime(time_format))
+    """Test Cases for the Amenity class."""
 
     def setUp(self):
-        self.amenity = Amenity()
+        """Sets up test methods."""
+        pass
 
-    def test_amenity_is_a_subclass_of_basemodel(self):
-        self.assertTrue(issubclass(type(self.amenity), BaseModel))
+    def tearDown(self):
+        """Tears down test methods."""
+        self.resetStorage()
+        pass
 
-    def test_attr_is_a_class_attr(self):
-        self.assertTrue(hasattr(self.amenity, "name"))
+    def resetStorage(self):
+        """Resets FileStorage data."""
+        FileStorage._FileStorage__objects = {}
+        if os.path.isfile(FileStorage._FileStorage__file_path):
+            os.remove(FileStorage._FileStorage__file_path)
 
-    def test_class_attr(self):
-        self.assertIs(type(self.amenity.name), str)
-        self.assertFalse(bool(getattr(self.amenity, "name")))
+    def test_8_instantiation(self):
+        """Tests instantiation of Amenity class."""
 
-    def test_class(self):
-        amen = Amenity()
-        self.assertEqual(amen.__class__.__name__, "Amenity")
+        b = Amenity()
+        self.assertEqual(str(type(b)), "<class 'models.amenity.Amenity'>")
+        self.assertIsInstance(b, Amenity)
+        self.assertTrue(issubclass(type(b), BaseModel))
 
-    def test_base(self):
-        amen = Amenity()
-        self.assertTrue(issubclass(amen.__class__, BaseModel))
-
-    def test_amenity(self):
-        """Test attributes of Class Amenity"""
-        amenity = Amenity()
-        self.assertTrue(hasattr(amenity, "name"))
-        self.assertEqual(amenity.name, "")
-
-    def test_dict_value(self):
-        """
-            test dict values
-        """
-        time_format = "%Y-%m-%dT%H:%M:%S.%f"
-        inst = Amenity()
-        dict_con = inst.to_dict()
-        self.assertEqual(dict_con["__class__"], "Amenity")
-        self.assertEqual(type(dict_con["created_at"]), str)
-        self.assertEqual(type(dict_con["updated_at"]), str)
-        self.assertEqual(
-                            dict_con["created_at"],
-                            inst.created_at.strftime(time_format)
-                                        )
-        self.assertEqual(
-            dict_con["updated_at"],
-            inst.updated_at.strftime(time_format)
-        )
-
-    def setUp(self):
-        self.amenity = Amenity()
-
-    def test_amenity_is_a_subclass_of_basemodel(self):
-        self.assertTrue(issubclass(type(self.amenity), BaseModel))
-
-    def test_attr_is_a_class_attr(self):
-        self.assertTrue(hasattr(self.amenity, "name"))
-
-    def test_class_attr(self):
-        self.assertIs(type(self.amenity.name), str)
-        self.assertFalse(bool(getattr(self.amenity, "name")))
-
+    def test_8_attributes(self):
+        """Tests the attributes of Amenity class."""
+        attributes = storage.attributes()["Amenity"]
+        o = Amenity()
+        for k, v in attributes.items():
+            self.assertTrue(hasattr(o, k))
+            self.assertEqual(type(getattr(o, k, None)), v)
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,3 +1,5 @@
-# Files not to be push
-*#
-*~
+*-main.py
+__pycache__/
+*.pyc
+*.swp
+file.json

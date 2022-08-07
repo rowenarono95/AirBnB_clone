@@ -1,12 +1,11 @@
 #!/usr/bin/python3
-"""class Place that inherits from the class BaseModel
-"""
+"""Module for Place class."""
+
 from models.base_model import BaseModel
 
 
 class Place(BaseModel):
-    """Defines the Place class
-    """
+    """Class representing a Place."""
     city_id = ""
     user_id = ""
     name = ""
