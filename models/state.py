@@ -1,9 +1,14 @@
 #!/usr/bin/python3
-"""Module for State class."""
+"""
+module that contain the State class
+
+Class:
+    State : define State
+"""
 
 from models.base_model import BaseModel
 
 
 class State(BaseModel):
-    """Class representing a State."""
-    name = ""
+    """class that define State"""
+    name = str("")

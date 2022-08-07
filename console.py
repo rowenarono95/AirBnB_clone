@@ -1,218 +1,236 @@
 #!/usr/bin/python3
-"""Module for the entry point of the command interpreter."""
-
-import cmd
+"""
+This module represents the console
+"""
 from models.base_model import BaseModel
+from models.user import User
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.place import Place
+from models.review import Review
 from models import storage
-import re
 import json
+import shlex
+import cmd
+import re
+import ast
+
+
+class_dict = {
+    "BaseModel": BaseModel,
+    "User": User,
+    "State": State,
+    "City": City,
+    "Amenity": Amenity,
+    "Place": Place,
+    "Review": Review
+}
+function_list = [
+    "all",
+    "show",
+    "create",
+    "update",
+    "destroy",
+    "count"
+]
 
 
 class HBNBCommand(cmd.Cmd):
+    """
+    This class defines console functions
+    """
+    prompt = '(hbnb) '
 
-    """Class for the command interpreter."""
-
-    prompt = "(hbnb) "
-
-    def default(self, line):
-        """Catch commands if nothing else matches then."""
-        # print("DEF:::", line)
-        self._precmd(line)
-
-    def _precmd(self, line):
-        """Intercepts commands to test for class.syntax()"""
-        # print("PRECMD:::", line)
-        match = re.search(r"^(\w*)\.(\w+)(?:\(([^)]*)\))$", line)
-        if not match:
-            return line
-        classname = match.group(1)
-        method = match.group(2)
-        args = match.group(3)
-        match_uid_and_args = re.search('^"([^"]*)"(?:, (.*))?$', args)
-        if match_uid_and_args:
-            uid = match_uid_and_args.group(1)
-            attr_or_dict = match_uid_and_args.group(2)
-        else:
-            uid = args
-            attr_or_dict = False
-
-        attr_and_value = ""
-        if method == "update" and attr_or_dict:
-            match_dict = re.search('^({.*})$', attr_or_dict)
-            if match_dict:
-                self.update_dict(classname, uid, match_dict.group(1))
-                return ""
-            match_attr_and_value = re.search(
-                '^(?:"([^"]*)")?(?:, (.*))?$', attr_or_dict)
-            if match_attr_and_value:
-                attr_and_value = (match_attr_and_value.group(
-                    1) or "") + " " + (match_attr_and_value.group(2) or "")
-        command = method + " " + classname + " " + uid + " " + attr_and_value
-        self.onecmd(command)
-        return command
-
-    def update_dict(self, classname, uid, s_dict):
-        """Helper method for update() with a dictionary."""
-        s = s_dict.replace("'", '"')
-        d = json.loads(s)
-        if not classname:
-            print("** class name missing **")
-        elif classname not in storage.classes():
-            print("** class doesn't exist **")
-        elif uid is None:
-            print("** instance id missing **")
-        else:
-            key = "{}.{}".format(classname, uid)
-            if key not in storage.all():
-                print("** no instance found **")
-            else:
-                attributes = storage.attributes()[classname]
-                for attribute, value in d.items():
-                    if attribute in attributes:
-                        value = attributes[attribute](value)
-                    setattr(storage.all()[key], attribute, value)
-                storage.all()[key].save()
-
-    def do_EOF(self, line):
-        """Handles End Of File character.
-        """
-        print()
+    def do_quit(self, arg):
+        """Quit command to exit the program"""
         return True
 
-    def do_quit(self, line):
-        """Exits the program.
-        """
+    def do_EOF(self, arg):
+        """EOF command to exit the program"""
         return True
 
     def emptyline(self):
-        """Doesn't do anything on ENTER.
-        """
-        pass
+        """This function handles empty line"""
+        return
 
-    def do_create(self, line):
-        """Creates an instance.
-        """
-        if line == "" or line is None:
+    def do_create(self, arg):
+        """Create command to create an instance of a class"""
+        list_args = parse(arg)
+        if len(list_args) == 0:
             print("** class name missing **")
-        elif line not in storage.classes():
+        elif (list_args[0] not in class_dict):
             print("** class doesn't exist **")
         else:
-            b = storage.classes()[line]()
-            b.save()
-            print(b.id)
+            instance = class_dict[list_args[0]]()
+            instance.save()
+            print(instance.id)
 
-    def do_show(self, line):
-        """Prints the string representation of an instance.
-        """
-        if line == "" or line is None:
+    def do_show(self, arg):
+        """Show command to print the string representation of an instance \
+based on the class name and id
+Usage: <class name>.show(<id>)
+Usage: show <class name> <id>"""
+        list_args = parse(arg)
+        if len(list_args) == 0:
             print("** class name missing **")
-        else:
-            words = line.split(' ')
-            if words[0] not in storage.classes():
-                print("** class doesn't exist **")
-            elif len(words) < 2:
-                print("** instance id missing **")
-            else:
-                key = "{}.{}".format(words[0], words[1])
-                if key not in storage.all():
-                    print("** no instance found **")
-                else:
-                    print(storage.all()[key])
-
-    def do_destroy(self, line):
-        """Deletes an instance based on the class name and id.
-        """
-        if line == "" or line is None:
-            print("** class name missing **")
-        else:
-            words = line.split(' ')
-            if words[0] not in storage.classes():
-                print("** class doesn't exist **")
-            elif len(words) < 2:
-                print("** instance id missing **")
-            else:
-                key = "{}.{}".format(words[0], words[1])
-                if key not in storage.all():
-                    print("** no instance found **")
-                else:
-                    del storage.all()[key]
-                    storage.save()
-
-    def do_all(self, line):
-        """Prints all string representation of all instances.
-        """
-        if line != "":
-            words = line.split(' ')
-            if words[0] not in storage.classes():
-                print("** class doesn't exist **")
-            else:
-                l = [str(obj) for key, obj in storage.all().items()
-                     if type(obj).__name__ == words[0]]
-                print(l)
-        else:
-            l = [str(obj) for key, obj in storage.all().items()]
-            print(l)
-
-    def do_count(self, line):
-        """Counts the instances of a class.
-        """
-        words = line.split(' ')
-        if not words[0]:
-            print("** class name missing **")
-        elif words[0] not in storage.classes():
+        elif (list_args[0] not in class_dict):
             print("** class doesn't exist **")
-        else:
-            matches = [
-                k for k in storage.all() if k.startswith(
-                    words[0] + '.')]
-            print(len(matches))
-
-    def do_update(self, line):
-        """Updates an instance by adding or updating attribute.
-        """
-        if line == "" or line is None:
-            print("** class name missing **")
-            return
-
-        rex = r'^(\S+)(?:\s(\S+)(?:\s(\S+)(?:\s((?:"[^"]*")|(?:(\S)+)))?)?)?'
-        match = re.search(rex, line)
-        classname = match.group(1)
-        uid = match.group(2)
-        attribute = match.group(3)
-        value = match.group(4)
-        if not match:
-            print("** class name missing **")
-        elif classname not in storage.classes():
-            print("** class doesn't exist **")
-        elif uid is None:
+        elif len(list_args) < 2:
             print("** instance id missing **")
+        elif (f"{list_args[0]}.{list_args[1]}"
+              ) not in storage._FileStorage__objects:
+            print("** no instance found **")
         else:
-            key = "{}.{}".format(classname, uid)
-            if key not in storage.all():
-                print("** no instance found **")
-            elif not attribute:
-                print("** attribute name missing **")
-            elif not value:
-                print("** value missing **")
-            else:
-                cast = None
-                if not re.search('^".*"$', value):
-                    if '.' in value:
-                        cast = float
-                    else:
-                        cast = int
+            print(
+                storage._FileStorage__objects[
+                    f"{list_args[0]}.{list_args[1]}"])
+
+    def do_destroy(self, arg):
+        """Destroy command to delete an instance \
+based on the class name and id
+Usage: <class name>.destroy(<id>)
+Usage: destroy <class name> <id>"""
+        list_args = parse(arg)
+        if len(list_args) == 0:
+            print("** class name missing **")
+        elif (list_args[0] not in class_dict):
+            print("** class doesn't exist **")
+        elif len(list_args) < 2:
+            print("** instance id missing **")
+        elif (f"{list_args[0]}.{list_args[1]}"
+              ) not in storage._FileStorage__objects:
+            print("** no instance found **")
+        else:
+            del storage._FileStorage__objects[f"{list_args[0]}.{list_args[1]}"]
+            storage.save()
+
+    def do_all(self, arg):
+        """All command to print all string representation of all instances
+Usage: <class name>.all()
+Usage: all <class name>
+where <class name> is optional"""
+        list_args = parse(arg)
+        if len(list_args) > 0 and list_args[0] not in class_dict:
+            print("** class doesn't exist **")
+        else:
+            list_result = []
+            for key, value in storage._FileStorage__objects.items():
+                if len(list_args) == 0:
+                    list_result.append(str(value))
                 else:
-                    value = value.replace('"', '')
-                attributes = storage.attributes()[classname]
-                if attribute in attributes:
-                    value = attributes[attribute](value)
-                elif cast:
-                    try:
-                        value = cast(value)
-                    except ValueError:
-                        pass  # fine, stay a string then
-                setattr(storage.all()[key], attribute, value)
-                storage.all()[key].save()
+                    if list_args[0] == value.to_dict()["__class__"]:
+                        list_result.append(str(value))
+            print(list_result)
+
+    def do_count(self, arg):
+        """Count command to retrieve the number of instances of a class
+Usage: <class name>.count()
+Usage: count <class name>
+where <class name> is optional"""
+        count = 0
+        if arg:
+            list_args = parse(arg)
+            for key, value in storage._FileStorage__objects.items():
+                if value.__class__.__name__ == list_args[0]:
+                    count += 1
+        else:
+            for key in storage._FileStorage__objects.keys():
+                count += 1
+        print(count)
+
+    def do_update(self, arg):
+        """Update command to update an instance based on the class name \
+and id by adding or updating attribute
+Usage: <class name>.update(<id>, <dictionary representation>)
+Usage: <class name>.update(<id>, <attribute name>, <attribute value>)
+Usage: update <class name> <id> <attribute name> <attribute value>
+"""
+        list_args = parse(arg)
+        if len(list_args) == 0:
+            print("** class name missing **")
+        elif (list_args[0] not in class_dict):
+            print("** class doesn't exist **")
+        elif len(list_args) < 2:
+            print("** instance id missing **")
+        elif (f"{list_args[0]}.{list_args[1]}"
+              ) not in storage._FileStorage__objects:
+            print("** no instance found **")
+        elif (len(list_args) < 3):
+            print("** attribute name missing **")
+        elif (len(list_args) < 4):
+            print("** value missing **")
+        else:
+            setattr(
+                storage._FileStorage__objects[f"{list_args[0]}.{list_args[1]}"
+                                              ], list_args[2], tryeval(
+                                                  (list_args[3])))
+            instance = storage._FileStorage__objects[
+                f"{list_args[0]}.{list_args[1]}"]
+            instance.save()
+
+    def default(self, arg):
+        """function that take the user input and process informations \
+Usage: <class name>.<function()>"""
+        pattern_reg = r"(.*)\.(.*)\((.*?)\)"
+        if re.search(pattern_reg, str(arg)):
+            str_arg = re.sub(pattern_reg, r"\2 \1 \3", arg)
+            list_arg = parse(str_arg)
+            if list_arg[0] in function_list:
+                if list_arg[0] == "update":
+                    dict_reg = r"({.*: \w*})"
+                    if (re.search(dict_reg, str_arg)):
+                        arg_str = re.search(dict_reg, str_arg).group(
+                            0).replace("'", '"')
+                        arg_dict = json.loads(arg_str)
+                        for key, value in arg_dict.items():
+                            if type(value) is str:
+                                value = "\"" + value + "\""
+                            self.do_update("{} {} {} {}".format(
+                                list_arg[1],
+                                list_arg[2].strip(','),
+                                key,
+                                value
+                            ))
+                    else:
+                        arg_list = []
+                        for elt in list_arg:
+                            element = elt.strip(',')
+                            if type(element) is str:
+                                element = "\"" + element + "\""
+                            arg_list.append(element)
+                        sentence = ""
+                        for word in arg_list[1:]:
+                            sentence = sentence + " " + str(word)
+                        self.do_update(sentence)
+                else:
+                    str_arg = str_arg.replace(",", " ")
+                    arg = str_arg.split(" ", 1)
+                    getattr(self, "do_" + list_arg[0])(arg[1])
+            else:
+                return syntax_error(arg)
+        else:
+            return syntax_error(arg)
+
+
+def parse(arg):
+    """Convert a series of zero or more numbers to an argument tuple"""
+    return shlex.split(arg)
+
+
+def syntax_error(arg):
+    """This function handles Unknow syntax Error"""
+    print("*** Unknow syntax: {}".format(arg))
+    return False
+
+
+def tryeval(value):
+    """find the most appropriate type for value and return the new value"""
+    try:
+        value = ast.literal_eval(value)
+    except Exception:
+        pass
+    return value
 
 
 if __name__ == '__main__':
