@@ -3,8 +3,8 @@
 This project is a school exercice in Python. This is the first step towards building our first full web application: the AirBnB clone.
 
 <ul>
-<li>Rowena Rono</li>
 <li>Chelsea Kubasu</li>
+<li>Rowena Rono</li>
 </ul>
 
 We have to do 11 mandatory tasks (0 to 10) and 7 advanced tasks (11 to 17).
